@@ -47,12 +47,18 @@ public struct MathParser {
                             stack.removeLast()
                             
                             if stack.isEmpty {
-                                representations.append(
-                                    MathRepresentation(
-                                        kind: type,
-                                        range: startIndex..<endIndex
+                                // Validate the potential math expression before adding it
+                                if isValidMathExpression(
+                                    kind: type,
+                                    range: startIndex..<endIndex
+                                ) {
+                                    representations.append(
+                                        MathRepresentation(
+                                            kind: type,
+                                            range: startIndex..<endIndex
+                                        )
                                     )
-                                )
+                                }
                             }
                         }
                         index = endIndex
@@ -83,6 +89,101 @@ public struct MathParser {
         }
         
         return representations
+    }
+    
+    /// Validates if the given range contains a valid math expression.
+    /// This helps prevent false positives like currency amounts being treated as math.
+    private func isValidMathExpression(
+        kind: MathRepresentation.Kind,
+        range: Range<String.Index>
+    ) -> Bool {
+        let content = text[range]
+        let delimiter = kind.leftTerminator
+        
+        // Extract the inner content (without delimiters)
+        let innerStartIndex = text.index(range.lowerBound, offsetBy: delimiter.count)
+        let innerEndIndex = text.index(range.upperBound, offsetBy: -delimiter.count)
+        
+        guard innerStartIndex < innerEndIndex else {
+            return false // Empty content
+        }
+        
+        let innerContent = text[innerStartIndex..<innerEndIndex]
+        
+        // For single $ inline equations, apply stricter validation
+        if kind == .inlineEquation {
+            // Check if it starts or ends with whitespace (common in currency like "$ 100" or "100 $")
+            if innerContent.first?.isWhitespace == true || innerContent.last?.isWhitespace == true {
+                return false
+            }
+            
+            // Check if this looks like a currency amount
+            // Currency patterns typically have: $<number><optional decimal><optional unit/word>
+            // Example: $3.9, $3.9 trillion, $4
+            if isCurrencyPattern(innerContent) {
+                return false
+            }
+        }
+        
+        // Check if the content contains typical LaTeX/math syntax
+        if containsMathSyntax(innerContent) {
+            return true
+        }
+        
+        // For non-inline equations ($$, \[, etc.), be more lenient
+        if !kind.inline {
+            return true
+        }
+        
+        // For inline equations, require at least some indication of math
+        // Allow if content has: backslashes, braces, typical math symbols, or superscript/subscript
+        return innerContent.contains { char in
+            char == "\\" || char == "{" || char == "}" || 
+            char == "^" || char == "_" || char == "=" ||
+            char == "+" || char == "-" || char == "*" || char == "/" ||
+            char == "(" || char == ")" || char == "[" || char == "]"
+        }
+    }
+    
+    /// Checks if the content matches common currency patterns
+    private func isCurrencyPattern(_ content: any StringProtocol) -> Bool {
+        let trimmed = content.trimmingCharacters(in: .whitespaces)
+        
+        // Check if it starts with a digit (like "3.9 trillion")
+        guard let firstChar = trimmed.first else { return false }
+        
+        if firstChar.isNumber {
+            // This looks like a currency amount if it contains only:
+            // - numbers, dots, commas (for formatting)
+            // - optional spaces and common currency-related words
+            let contentStr = String(trimmed)
+            let mathFreeContent = contentStr.replacingOccurrences(of: #"\d"#, with: "", options: .regularExpression)
+                .replacingOccurrences(of: ".", with: "")
+                .replacingOccurrences(of: ",", with: "")
+                .trimmingCharacters(in: .whitespaces)
+            
+            // If after removing numbers and punctuation, we only have common currency words or nothing
+            let currencyWords = ["trillion", "billion", "million", "thousand", "k", "m", "b", "t"]
+            let words = mathFreeContent.lowercased().split(separator: " ")
+            
+            // If it has no words left, or only currency-related words, treat as currency
+            if mathFreeContent.isEmpty || words.allSatisfy({ currencyWords.contains(String($0)) }) {
+                return true
+            }
+        }
+        
+        return false
+    }
+    
+    /// Checks if the content contains typical LaTeX/math syntax
+    private func containsMathSyntax(_ content: any StringProtocol) -> Bool {
+        let mathCommands = ["\\frac", "\\sqrt", "\\sum", "\\int", "\\prod", "\\lim", 
+                           "\\alpha", "\\beta", "\\gamma", "\\delta", "\\theta",
+                           "\\left", "\\right", "\\begin", "\\end", "\\text",
+                           "\\mu", "\\nu", "\\sigma", "\\pi", "\\mathbf"]
+        
+        let contentStr = String(content)
+        return mathCommands.contains { contentStr.contains($0) }
     }
 }
 

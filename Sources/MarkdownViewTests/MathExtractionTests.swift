@@ -36,6 +36,19 @@ struct MathExtractionTests {
                 plainText: #"\[ \hat{H}\psi = E\psi \quad \text{where} \quad \hat{H} = -\frac{\hbar^2}{2m}\nabla^2 + V(\mathbf{r}) \]"#,
                 extractedMath: [#"\[ \hat{H}\psi = E\psi \quad \text{where} \quad \hat{H} = -\frac{\hbar^2}{2m}\nabla^2 + V(\mathbf{r}) \]"#]
             ),
+            // Test that currency amounts are NOT treated as math
+            MathExtractionTestConfiguration(
+                plainText: #"The latest valuation of Apple is approximately $3.9 trillion, with shares surging close to a $4 trillion market capitalization."#,
+                extractedMath: []
+            ),
+            MathExtractionTestConfiguration(
+                plainText: #"The price is $100 and the tax is $15."#,
+                extractedMath: []
+            ),
+            MathExtractionTestConfiguration(
+                plainText: #"This costs $5.99 per unit."#,
+                extractedMath: []
+            ),
         ]
     )
     func testMathExtractionCase(
