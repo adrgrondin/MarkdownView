@@ -9,7 +9,7 @@ import Markdown
 import SwiftUI
 
 extension Markdown.Table.Cell {
-    private var alignment: CellAlignment {
+    var cellAlignment: CellAlignment {
         guard parent is any TableCellContainer else { return .leading }
         
         let columnIdx = self.indexInParent
@@ -32,11 +32,11 @@ extension Markdown.Table.Cell {
     }
     
     var horizontalAlignment: HorizontalAlignment {
-        alignment.horizontalAlignment
+        cellAlignment.horizontalAlignment
     }
     
     var textAlignment: TextAlignment {
-        alignment.textAlignment
+        cellAlignment.textAlignment
     }
     
     enum CellAlignment {

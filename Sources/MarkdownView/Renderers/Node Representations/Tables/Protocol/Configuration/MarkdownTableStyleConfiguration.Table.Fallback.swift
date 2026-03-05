@@ -11,7 +11,8 @@ import Markdown
 extension MarkdownTableStyleConfiguration.Table {
     /// A type-erased fallback table that uses `AdaptiveGrid` for rendering table on older platforms.
     public struct Fallback: View {
-        private var table: Markdown.Table
+        private let header: MarkdownTableRowModel
+        private let rows: [MarkdownTableRowModel]
         @Environment(\.markdownRendererConfiguration) private var configuration
         @Environment(\.markdownFontGroup.tableHeader) private var headerFont
         @Environment(\.markdownFontGroup.tableBody) private var bodyFont
@@ -19,11 +20,12 @@ extension MarkdownTableStyleConfiguration.Table {
         private var showsRowSeparators: Bool = false
         private var horizontalSpacing: CGFloat = 0
         private var verticalSpacing: CGFloat = 0
-        
-        init(_ table: Markdown.Table) {
-            self.table = table
+
+        init(header: MarkdownTableRowModel, rows: [MarkdownTableRowModel]) {
+            self.header = header
+            self.rows = rows
         }
-        
+
         @_documentation(visibility: internal)
         public var body: some View {
             AdaptiveGrid(
@@ -31,25 +33,23 @@ extension MarkdownTableStyleConfiguration.Table {
                 verticalSpacing: verticalSpacing,
                 showDivider: showsRowSeparators
             ) {
-                GridRowContainer(index: 0) {
-                    let cells = Array(table.head.children) as! [Markdown.Table.Cell]
-                    for cell in cells {
+                GridRowContainer(index: header.rowIndex) {
+                    for cell in header.cells {
                         GridCellContainer(alignment: cell.horizontalAlignment) {
                             CmarkNodeVisitor(configuration: configuration)
-                                .makeBody(for: cell)
+                                .makeBody(for: cell.cell)
                                 .font(headerFont)
                                 .multilineTextAlignment(cell.textAlignment)
                                 ._markdownCellPadding(padding)
                         }
                     }
                 }
-                for (rowIndex, row) in table.body.children.enumerated() {
-                    GridRowContainer(index: rowIndex + /* header */ 1) {
-                        let cells = Array(row.children) as! [Markdown.Table.Cell]
-                        for cell in cells {
+                for row in rows {
+                    GridRowContainer(index: row.rowIndex) {
+                        for cell in row.cells {
                             GridCellContainer(alignment: cell.horizontalAlignment) {
                                 CmarkNodeVisitor(configuration: configuration)
-                                    .makeBody(for: cell)
+                                    .makeBody(for: cell.cell)
                                     .font(bodyFont)
                                     .multilineTextAlignment(cell.textAlignment)
                                     ._markdownCellPadding(padding)

@@ -2,13 +2,16 @@ import SwiftUI
 import Markdown
 
 struct MarkdownTable: View {
-    var table: Markdown.Table
+    private let configuration: MarkdownTableStyleConfiguration
     @Environment(\.markdownTableStyle) private var tableStyle
-    
-    var body: some View {
-        let configuration = MarkdownTableStyleConfiguration(
+
+    init(table: Markdown.Table) {
+        configuration = MarkdownTableStyleConfiguration(
             table: MarkdownTableStyleConfiguration.Table(table: table)
         )
+    }
+
+    var body: some View {
         tableStyle
             .makeBody(configuration: configuration)
             .erasedToAnyView()
@@ -22,15 +25,19 @@ extension MarkdownTable {
 }
 
 struct MarkdownTableBody: View {
-    var tableBody: Markdown.Table.Body
-    
+    private let rows: [MarkdownTableRowModel]
     @Environment(\.markdownRendererConfiguration) private var configuration
     @Environment(\.markdownFontGroup.tableBody) private var font
-    
+
+    init(tableBody: Markdown.Table.Body) {
+        rows = tableBody.rows.enumerated().map {
+            MarkdownTableRowModel(rowIndex: $0.offset + 1, cells: Array($0.element.cells))
+        }
+    }
+
     var body: some View {
-        ForEach(Array(tableBody.children.enumerated()), id: \.offset) { (_, row) in
-            CmarkNodeVisitor(configuration: configuration)
-                .makeBody(for: row)
+        ForEach(rows) { row in
+            MarkdownTableRow(row: row)
                 .font(font)
         }
     }

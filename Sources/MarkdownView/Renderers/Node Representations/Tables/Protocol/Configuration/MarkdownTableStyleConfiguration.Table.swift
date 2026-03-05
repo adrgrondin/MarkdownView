@@ -17,18 +17,22 @@ extension MarkdownTableStyleConfiguration {
     @preconcurrency
     @MainActor
     public struct Table {
-        var table: Markdown.Table
+        public let header: MarkdownTableStyleConfiguration.Table.Header
+        public let rows: [MarkdownTableStyleConfiguration.Table.Row]
+        public let fallback: Fallback
+
+        init(table: Markdown.Table) {
+            let headerRow = MarkdownTableRowModel(rowIndex: 0, cells: Array(table.head.cells))
+            let bodyRows = table.body.rows.enumerated().map {
+                MarkdownTableRowModel(rowIndex: $0.offset + 1, cells: Array($0.element.cells))
+            }
+
+            header = MarkdownTableStyleConfiguration.Table.Header(row: headerRow)
+            rows = bodyRows.map(MarkdownTableStyleConfiguration.Table.Row.init)
+            fallback = Fallback(header: headerRow, rows: bodyRows)
+        }
+
         /// The header row of a table.
-        public var header: MarkdownTableStyleConfiguration.Table.Header {
-            MarkdownTableStyleConfiguration.Table.Header(table.head)
-        }
-        /// The body rows of a table.
-        public var rows: [MarkdownTableStyleConfiguration.Table.Row] {
-            table.body.rows.map(MarkdownTableStyleConfiguration.Table.Row.init)
-        }
-        public var fallback: Fallback {
-            Fallback(table)
-        }
     }
 }
 
@@ -38,7 +42,7 @@ extension MarkdownTableStyleConfiguration.Table: View {
         if #available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *) {
             Grid(horizontalSpacing: 0, verticalSpacing: 0) {
                 header
-                ForEach(Array(rows.enumerated()), id: \.offset) { (_, row) in
+                ForEach(rows, id: \.rowID) { row in
                     row
                 }
             }

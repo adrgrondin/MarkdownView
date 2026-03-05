@@ -63,8 +63,10 @@ fileprivate struct GithubMarkdownTable: View {
                 Grid(horizontalSpacing: 0, verticalSpacing: 0) {
                     configuration.table.header
                         
-                    ForEach(Array(configuration.table.rows.enumerated()), id: \.offset) { (index, row) in
-                        let backgroundStyle = index % 2 == 0 ? AnyShapeStyle(backgroundColor) : AnyShapeStyle(alternativeRowColor)
+                    ForEach(configuration.table.rows, id: \.rowID) { row in
+                        let backgroundStyle = row.rowID.isMultiple(of: 2)
+                            ? AnyShapeStyle(backgroundColor)
+                            : AnyShapeStyle(alternativeRowColor)
                         row
                             .markdownTableRowBackgroundStyle(backgroundStyle)
                     }

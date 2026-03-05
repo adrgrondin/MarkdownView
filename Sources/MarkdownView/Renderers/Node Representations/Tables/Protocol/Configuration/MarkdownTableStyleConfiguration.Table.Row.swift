@@ -13,20 +13,19 @@ extension MarkdownTableStyleConfiguration.Table {
     ///
     /// On platforms that does not supports `Grid`, it would be `EmptyView`.
     public struct Row: View {
-        var row: Markdown.Table.Row
+        private let row: MarkdownTableRowModel
+        let rowID: Int
         @Environment(\.markdownFontGroup.tableBody) private var font
-        
-        init(_ row: Markdown.Table.Row) {
+
+        init(_ row: MarkdownTableRowModel) {
             self.row = row
+            rowID = row.id
         }
-        
+
         @_documentation(visibility: internal)
         public var body: some View {
-            MarkdownTableRow(
-                rowIndex: row.indexInParent + 1 /* header */,
-                cells: Array(row.cells)
-            )
-            .font(font)
+            MarkdownTableRow(row: row)
+                .font(font)
         }
     }
 }
