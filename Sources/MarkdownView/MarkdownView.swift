@@ -4,11 +4,7 @@ import Markdown
 /// A view that displays read-only Markdown content.
 public struct MarkdownView: View {
     private var content: MarkdownContent
-    
-    @State private var viewSize = CGSize.zero
-    @Environment(\.colorScheme) private var colorScheme
-    @Environment(\.displayScale) private var displayScale
-    
+
     @Environment(\.markdownViewStyle) private var markdownViewStyle
     @Environment(\.markdownFontGroup.body) private var bodyFont
     @Environment(\.markdownRendererConfiguration) private var configuration

@@ -9,28 +9,26 @@ import Markdown
 import SwiftUI
 
 struct MarkdownImage: View {
-    var image: Markdown.Image
-    private var url: URL? {
-        if let source = image.source {
-            return URL(string: source)
-        }
-        return nil
-    }
-    private var alternativeText: String? {
-        if !(image.parent is Markdown.Link) {
-            if let title = image.title, !title.isEmpty {
-                return title
-            } else {
-                return image.plainText.isEmpty ? nil : image.plainText
-            }
-        } else {
-            // If the image is inside a link, then ignore the alternative text
-            return nil
-        }
-    }
+    private let url: URL?
+    private let alternativeText: String?
+    private let fallbackText: String
+
     @Environment(\.markdownRendererConfiguration.preferredBaseURL) private var baseURL
     @Environment(\.markdownRendererConfiguration.allowedImageRenderers) private var allowedRenderer
-    
+
+    init(image: Markdown.Image) {
+        url = image.source.flatMap(URL.init(string:))
+        fallbackText = image.plainText
+
+        if image.parent is Markdown.Link {
+            alternativeText = nil
+        } else if let title = image.title, !title.isEmpty {
+            alternativeText = title
+        } else {
+            alternativeText = image.plainText.isEmpty ? nil : image.plainText
+        }
+    }
+
     var body: some View {
         if let url {
             let configuration = MarkdownImageRendererConfiguration(
@@ -55,6 +53,6 @@ struct MarkdownImage: View {
     }
     
     private var fallbackView: some View {
-        MarkdownNodeView(image.plainText)
+        MarkdownNodeView(fallbackText)
     }
 }

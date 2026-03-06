@@ -16,7 +16,9 @@ struct HTMLBlockView: View {
         HTMLView(
             html,
             onContentHeightChange: { height in
-                contentSize.height = height
+                if contentSize.height != height {
+                    contentSize.height = height
+                }
             }
         )
         .frame(maxWidth: .infinity)

@@ -12,9 +12,6 @@ struct AdaptiveGrid: View {
     @State private var cellSizes: [CGFloat]
     // The width of each column
     @State private var colWidths: [CGFloat]
-    @State private var height = CGFloat.zero
-    // The width of the whole table
-    @State private var _width = CGFloat.zero
     
     /// Create an adaptive grid that dynamically adjust column width to best fit the content.
     /// - Parameters:
@@ -64,23 +61,14 @@ struct AdaptiveGrid: View {
                 ) { col, width in
                     // Update width of cells
                     let updatingIndex = row * columnsCount + col
-                    if updatingIndex < cellSizes.count {
+                    if updatingIndex < cellSizes.count, cellSizes[updatingIndex] != width {
                         cellSizes[updatingIndex] = width
+                        updateLayout()
                     }
-                    updateLayout()
                 }
                 if showDivider && rows.count - 1 != row {
                     Divider()
                 }
-            }
-        }
-        .background {
-            GeometryReader { geometryProxy in
-                Color.clear
-                    ._task(id: geometryProxy.size) {
-                        _width = geometryProxy.size.width
-                        updateLayout()
-                    }
             }
         }
     }
@@ -94,7 +82,9 @@ struct AdaptiveGrid: View {
                 colWidth[col] = size
             }
         }
-        self.colWidths = colWidth
+        if colWidths != colWidth {
+            colWidths = colWidth
+        }
     }
 }
 

@@ -9,13 +9,16 @@ import SwiftUI
 import Markdown
 
 struct MarkdownBlockQuote: View {
-    var blockQuote: BlockQuote
+    private let configuration: BlockQuoteStyleConfiguration
     @Environment(\.blockQuoteStyle) private var blockQuoteStyle
-    
-    var body: some View {
-        let configuration = BlockQuoteStyleConfiguration(
+
+    init(blockQuote: BlockQuote) {
+        configuration = BlockQuoteStyleConfiguration(
             content: BlockQuoteStyleConfiguration.Content(blockQuote: blockQuote)
         )
+    }
+
+    var body: some View {
         blockQuoteStyle
             .makeBody(configuration: configuration)
             .erasedToAnyView()

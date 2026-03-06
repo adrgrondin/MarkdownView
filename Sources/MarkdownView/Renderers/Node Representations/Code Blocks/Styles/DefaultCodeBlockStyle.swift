@@ -54,9 +54,10 @@ extension CodeBlockStyle where Self == DefaultCodeBlockStyle {
 // MARK: - Default View Implementation
 
 struct DefaultMarkdownCodeBlock: View {
-    var codeBlockConfiguration: CodeBlockStyleConfiguration
-    
-    var theme: CodeHighlighterTheme
+    let codeBlockConfiguration: CodeBlockStyleConfiguration
+    let theme: CodeHighlighterTheme
+    private let displayLanguage: String?
+
     @Environment(\.colorScheme) private var colorScheme
     
     @Environment(\.markdownFontGroup) private var fontGroup
@@ -64,8 +65,16 @@ struct DefaultMarkdownCodeBlock: View {
     @State private var attributedCode: AttributedString?
     @State private var codeHighlightTask: Task<Void, Error>?
     
-    @State private var showCopyButton = false
     @State private var codeCopied = false
+
+    init(
+        codeBlockConfiguration: CodeBlockStyleConfiguration,
+        theme: CodeHighlighterTheme
+    ) {
+        self.codeBlockConfiguration = codeBlockConfiguration
+        self.theme = theme
+        displayLanguage = codeBlockConfiguration.language?.localizedLowercase
+    }
     
     var body: some View {
         ScrollView(.horizontal) {
@@ -113,8 +122,8 @@ struct DefaultMarkdownCodeBlock: View {
     
     @ViewBuilder
     private var codeLanguage: some View {
-        if let language = codeBlockConfiguration.language {
-            Text(language.localizedLowercase)
+        if let displayLanguage {
+            Text(displayLanguage)
                 .foregroundStyle(.secondary)
         }
     }

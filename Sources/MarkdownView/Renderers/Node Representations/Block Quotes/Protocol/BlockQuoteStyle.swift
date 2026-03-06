@@ -34,17 +34,17 @@ public struct BlockQuoteStyleConfiguration {
     
     /// A type-erased content of a block quote
     public struct Content: View {
-        private var blockQuote: BlockQuote
+        private let children: [any Markup]
         @Environment(\.markdownRendererConfiguration) private var configuration
         
         init(blockQuote: BlockQuote) {
-            self.blockQuote = blockQuote
+            children = Array(blockQuote.children)
         }
         
         @_documentation(visibility: internal)
         public var body: some View {
             VStack(alignment: .leading, spacing: configuration.componentSpacing) {
-                ForEach(Array(blockQuote.children.enumerated()), id: \.offset) { _, child in
+                ForEach(Array(children.enumerated()), id: \.offset) { _, child in
                     CmarkNodeVisitor(configuration: configuration)
                         .makeBody(for: child)
                 }

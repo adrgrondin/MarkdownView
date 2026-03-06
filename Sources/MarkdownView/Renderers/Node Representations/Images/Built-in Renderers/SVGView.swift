@@ -20,12 +20,18 @@ struct SVGView: View {
         } onFinishLoading: { webView in
             webView.evaluateJavaScript("(() => { const svg = document.querySelector('svg'); return svg.hasAttribute('width') ? svg.getBoundingClientRect().width : null; })()") { result, _ in
                 if let width = (result as? NSNumber)?.doubleValue, width.isNormal {
-                    actualSize.width = width
+                    let resolvedWidth = CGFloat(width)
+                    if actualSize.width != resolvedWidth {
+                        actualSize.width = resolvedWidth
+                    }
                 }
             }
             webView.evaluateJavaScript("document.querySelector('svg').getBoundingClientRect().height") { result, _ in
                 if let height = (result as? NSNumber)?.doubleValue, height.isNormal {
-                    actualSize.height = height
+                    let resolvedHeight = CGFloat(height)
+                    if actualSize.height != resolvedHeight {
+                        actualSize.height = resolvedHeight
+                    }
                 }
             }
         }

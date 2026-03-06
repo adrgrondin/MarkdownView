@@ -50,7 +50,10 @@ fileprivate struct _SizeReaderModifier: ViewModifier {
                 GeometryReader { geometryProxy in
                     Color.clear
                         ._task(id: geometryProxy.size) {
-                            size = geometryProxy.size
+                            let newSize = geometryProxy.size
+                            if size != newSize {
+                                size = newSize
+                            }
                         }
                 }
             }
@@ -66,7 +69,10 @@ fileprivate struct _HeightReaderModifier: ViewModifier {
                 GeometryReader { geometryProxy in
                     Color.clear
                         ._task(id: geometryProxy.size) {
-                            height = geometryProxy.size.height
+                            let newHeight = geometryProxy.size.height
+                            if height != newHeight {
+                                height = newHeight
+                            }
                         }
                 }
             }
@@ -82,7 +88,10 @@ fileprivate struct _WidthReaderModifier: ViewModifier {
                 GeometryReader { geometryProxy in
                     Color.clear
                         ._task(id: geometryProxy.size) {
-                            width = geometryProxy.size.width
+                            let newWidth = geometryProxy.size.width
+                            if width != newWidth {
+                                width = newWidth
+                            }
                         }
                 }
             }
