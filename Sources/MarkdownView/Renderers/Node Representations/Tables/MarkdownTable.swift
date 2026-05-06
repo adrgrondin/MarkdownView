@@ -9,11 +9,14 @@ struct MarkdownTable: View {
         let configuration = MarkdownTableStyleConfiguration(
             table: MarkdownTableStyleConfiguration.Table(table: table)
         )
-        tableStyle
-            .makeBody(configuration: configuration)
-            .erasedToAnyView()
-            .markdownTableCellStyleApplied()
-            .coordinateSpace(name: MarkdownTable.CoordinateSpaceName)
+        ScrollView(.horizontal) {
+            tableStyle
+                .makeBody(configuration: configuration)
+                .erasedToAnyView()
+                .fixedSize(horizontal: true, vertical: true)
+                .markdownTableCellStyleApplied()
+                .coordinateSpace(name: MarkdownTable.CoordinateSpaceName)
+        }
     }
 }
 
