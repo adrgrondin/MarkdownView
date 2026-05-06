@@ -4,6 +4,7 @@ import Markdown
 struct MarkdownTable: View {
     var table: Markdown.Table
     @Environment(\.markdownTableStyle) private var tableStyle
+    @State private var viewportWidth: CGFloat = 0
     
     var body: some View {
         let configuration = MarkdownTableStyleConfiguration(
@@ -13,11 +14,17 @@ struct MarkdownTable: View {
             tableStyle
                 .makeBody(configuration: configuration)
                 .erasedToAnyView()
+                .environment(
+                    \.markdownTableMinimumWidth,
+                    max(0, viewportWidth - MarkdownTableLayout.outerPadding * 2)
+                )
                 .fixedSize(horizontal: true, vertical: true)
                 .markdownTableCellStyleApplied()
-                .padding(1)
+                .padding(MarkdownTableLayout.outerPadding)
                 .coordinateSpace(name: MarkdownTable.CoordinateSpaceName)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .onWidthChange { viewportWidth = $0 }
     }
 }
 
@@ -26,7 +33,19 @@ extension MarkdownTable {
 }
 
 enum MarkdownTableLayout {
+    static let outerPadding: CGFloat = 1
     static let maximumColumnWidth: CGFloat = 280
+}
+
+struct MarkdownTableMinimumWidthEnvironmentKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 0
+}
+
+extension EnvironmentValues {
+    var markdownTableMinimumWidth: CGFloat {
+        get { self[MarkdownTableMinimumWidthEnvironmentKey.self] }
+        set { self[MarkdownTableMinimumWidthEnvironmentKey.self] = newValue }
+    }
 }
 
 @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)

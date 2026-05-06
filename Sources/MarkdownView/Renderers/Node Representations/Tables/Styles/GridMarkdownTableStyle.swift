@@ -25,6 +25,7 @@ extension MarkdownTableStyle where Self == GridMarkdownTableStyle {
 
 fileprivate struct GridMarkdownTable: View {
     var configuration: MarkdownTableStyleConfiguration
+    @Environment(\.markdownTableMinimumWidth) private var minimumWidth
     
     init(configuration: MarkdownTableStyleConfiguration) {
         self.configuration = configuration
@@ -32,6 +33,7 @@ fileprivate struct GridMarkdownTable: View {
     
     var body: some View {
         configuration.table
+            .frame(minWidth: minimumWidth, alignment: .leading)
             .markdownTableCellOverlay {
                 Rectangle()
                     .stroke(.foreground)

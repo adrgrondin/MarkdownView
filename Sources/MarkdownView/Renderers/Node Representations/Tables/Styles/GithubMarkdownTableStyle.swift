@@ -31,6 +31,7 @@ fileprivate struct GithubMarkdownTable: View {
     }
     
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.markdownTableMinimumWidth) private var minimumWidth
     
     /* Spacing values derived from GitHub's CSS table styles */
     private var horizontalSpacing: CGFloat = 13
@@ -74,6 +75,7 @@ fileprivate struct GithubMarkdownTable: View {
             }
         }
         .markdownTableRowBackgroundStyle(backgroundColor)
+        .frame(minWidth: minimumWidth, alignment: .leading)
         .markdownTableCellOverlay {
             Rectangle()
                 .stroke(borderColor)
