@@ -40,6 +40,7 @@ extension MarkdownTableStyleConfiguration.Table {
                                 .font(headerFont)
                                 .multilineTextAlignment(cell.textAlignment)
                                 ._markdownCellPadding(padding)
+                                ._markdownTableColumnWidthLimited(alignment: cell.horizontalAlignment)
                         }
                     }
                 }
@@ -53,6 +54,7 @@ extension MarkdownTableStyleConfiguration.Table {
                                     .font(bodyFont)
                                     .multilineTextAlignment(cell.textAlignment)
                                     ._markdownCellPadding(padding)
+                                    ._markdownTableColumnWidthLimited(alignment: cell.horizontalAlignment)
                             }
                         }
                     }

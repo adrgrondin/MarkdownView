@@ -15,6 +15,7 @@ struct MarkdownTable: View {
                 .erasedToAnyView()
                 .fixedSize(horizontal: true, vertical: true)
                 .markdownTableCellStyleApplied()
+                .padding(1)
                 .coordinateSpace(name: MarkdownTable.CoordinateSpaceName)
         }
     }
@@ -22,6 +23,44 @@ struct MarkdownTable: View {
 
 extension MarkdownTable {
     static let CoordinateSpaceName: String = "markdownview-table"
+}
+
+enum MarkdownTableLayout {
+    static let maximumColumnWidth: CGFloat = 280
+}
+
+@available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+private struct MarkdownTableColumnWidthLimitLayout: Layout {
+    func sizeThatFits(
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout ()
+    ) -> CGSize {
+        guard let subview = subviews.first else { return .zero }
+        
+        let idealSize = subview.sizeThatFits(.unspecified)
+        let width = min(idealSize.width, MarkdownTableLayout.maximumColumnWidth)
+        let constrainedSize = subview.sizeThatFits(
+            ProposedViewSize(width: width, height: proposal.height)
+        )
+        
+        return CGSize(width: width, height: constrainedSize.height)
+    }
+    
+    func placeSubviews(
+        in bounds: CGRect,
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout ()
+    ) {
+        guard let subview = subviews.first else { return }
+        
+        subview.place(
+            at: bounds.origin,
+            anchor: .topLeading,
+            proposal: ProposedViewSize(width: bounds.width, height: nil)
+        )
+    }
 }
 
 struct MarkdownTableBody: View {
@@ -117,6 +156,20 @@ fileprivate struct MarkdownTableCellStylingViewModifier: ViewModifier {
 }
 
 extension View {
+    @ViewBuilder
+    nonisolated package func _markdownTableColumnWidthLimited(alignment: HorizontalAlignment) -> some View {
+        if #available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *) {
+            MarkdownTableColumnWidthLimitLayout {
+                self
+            }
+        } else {
+            frame(
+                width: MarkdownTableLayout.maximumColumnWidth,
+                alignment: Alignment(horizontal: alignment, vertical: .center)
+            )
+        }
+    }
+
     nonisolated package func _markdownTableStylesIgnored(_ ignored: Bool = true) -> some View {
         transformEnvironment(\.self) { environmentValues in
             if ignored {

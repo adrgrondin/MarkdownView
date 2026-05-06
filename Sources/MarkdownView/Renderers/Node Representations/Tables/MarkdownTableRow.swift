@@ -26,9 +26,10 @@ struct MarkdownTableRow: View {
                     CmarkNodeVisitor(configuration: configuration)
                         .makeBody(for: cell)
                         .multilineTextAlignment(cell.textAlignment)
+                        ._markdownCellPadding(padding)
+                        ._markdownTableColumnWidthLimited(alignment: cell.horizontalAlignment)
                         .gridColumnAlignment(cell.horizontalAlignment)
                         .gridCellColumns(Int(cell.colspan))
-                        ._markdownCellPadding(padding)
                         .modifier(
                             MarkdownTableStylePreferenceSynchronizer(
                                 row: rowIndex,
