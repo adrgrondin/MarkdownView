@@ -78,6 +78,14 @@ public struct MarkdownContent: Sendable {
     func parse(options: ParseOptions = ParseOptions()) -> Document {
         store.parse(raw, options: options)
     }
+    
+    func parseAsynchronously(options: ParseOptions = ParseOptions()) async -> Document {
+        let raw = raw
+        let store = store
+        return await Task.detached(priority: .userInitiated) {
+            store.parse(raw, options: options)
+        }.value
+    }
 }
 
 extension MarkdownContent: Hashable {

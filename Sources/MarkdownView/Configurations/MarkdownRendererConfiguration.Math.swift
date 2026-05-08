@@ -22,11 +22,14 @@ extension MarkdownRendererConfiguration {
         var displayMathStorage: [UUID : String]? = nil
         
         mutating func appendDisplayMath(_ displayMath: some StringProtocol) -> UUID {
+            appendDisplayMath(displayMath, id: UUID())
+        }
+        
+        mutating func appendDisplayMath(_ displayMath: some StringProtocol, id: UUID) -> UUID {
             if displayMathStorage == nil {
                 displayMathStorage = [:]
             }
             
-            let id = UUID()
             displayMathStorage![id] = String(displayMath)
             return id
         }
