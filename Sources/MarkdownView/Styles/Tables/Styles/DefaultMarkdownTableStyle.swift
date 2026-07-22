@@ -33,6 +33,8 @@ extension MarkdownTableStyle where Self == DefaultMarkdownTableStyle {
 fileprivate struct DefaultMarkdownTable: View {
     var configuration: MarkdownTableStyleConfiguration
     var showsRowSeparators: Bool
+    @Environment(\.markdownTableMinimumWidth) private var minimumWidth
+
     private var spacing: CGFloat {
         showsRowSeparators ? 8 : 16
     }
@@ -49,6 +51,7 @@ fileprivate struct DefaultMarkdownTable: View {
         }
         .markdownTableCellPadding(spacing)
         .padding(12)
+        .frame(minWidth: minimumWidth, alignment: .leading)
         .overlay {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .strokeBorder(.quaternary)
