@@ -65,7 +65,7 @@ struct MarkdownTextConverter: @MainActor MarkupVisitor {
         )
         .makeNodes(for: markup)
 
-        return render(semanticNodes)
+        return render(semanticNodes).applyingInlineCodeFont(defaultFont: fonts.body.asPlatformFont)
     }
 
     func makeTextContent(for markups: [any Markup]) -> TextContent {
@@ -75,6 +75,7 @@ struct MarkdownTextConverter: @MainActor MarkupVisitor {
                     .makeNodes(for: $0)
             }
         )
+        .applyingInlineCodeFont(defaultFont: fonts.body.asPlatformFont)
     }
 
     func visitDocument(_ document: Markdown.Document) -> TextContent {
@@ -82,6 +83,7 @@ struct MarkdownTextConverter: @MainActor MarkupVisitor {
             MarkdownTextSemanticBuilder(configuration: configuration)
                 .makeNodes(for: document)
         )
+        .applyingInlineCodeFont(defaultFont: fonts.body.asPlatformFont)
     }
 
     func defaultVisit(_ markup: Markdown.Markup) -> TextContent {
@@ -226,7 +228,7 @@ struct MarkdownTextConverter: @MainActor MarkupVisitor {
         let tintColor = configuration.tintColors[.inlineCodeBlock] ?? .accentColor
         var attributedString = AttributedString(stringLiteral: inlineCode.code)
         attributedString.foregroundColor = tintColor
-        attributedString.backgroundColor = tintColor.opacity(0.1)
+        attributedString.inlinePresentationIntent = .code
         return TextContent(.attributedString(attributedString))
     }
 
@@ -399,6 +401,45 @@ extension MarkdownTextConverter {
         }
 
         return TextContent(.attributedString(attributedString))
+    }
+}
+
+private extension TextContent {
+    func applyingInlineCodeFont(defaultFont: PlatformFont) -> TextContent {
+        TextContent(
+            fragments.map { fragment in
+                guard case .attributedString(var attributedString) = fragment else {
+                    return fragment
+                }
+
+                let codeRuns: [(Range<AttributedString.Index>, PlatformFont)] = attributedString
+                    .runs
+                    .compactMap { run in
+                        guard run.inlinePresentationIntent?.contains(.code) == true else {
+                            return nil
+                        }
+                        #if canImport(UIKit)
+                        let currentFont = run[AttributeScopes.UIKitAttributes.FontAttribute.self]
+                        #elseif canImport(AppKit)
+                        let currentFont = run[AttributeScopes.AppKitAttributes.FontAttribute.self]
+                        #endif
+                        return (
+                            run.range,
+                            PlatformFont.monospacedSystemFont(
+                                ofSize: (currentFont ?? defaultFont).pointSize,
+                                weight: .regular
+                            )
+                        )
+                    }
+                for (range, font) in codeRuns {
+                    attributedString[range].mergeAttributes(
+                        AttributeContainer([.font: font]),
+                        mergePolicy: .keepNew
+                    )
+                }
+                return .attributedString(attributedString)
+            }
+        )
     }
 }
 

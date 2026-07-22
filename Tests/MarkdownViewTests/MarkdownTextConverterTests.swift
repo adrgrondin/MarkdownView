@@ -98,6 +98,43 @@ struct MarkdownTextConverterTests {
     }
 
     @Test(
+        "Renders inline code with a monospaced font and no background",
+        .tags(.textConversion)
+    )
+    @MainActor
+    func stylesInlineCode() {
+        let bodyFont = PlatformFont.systemFont(ofSize: 30)
+        let textContent = MarkdownViewTestSupport.makeTextContent(
+            markdown: "Use `let value = 1` here.",
+            fonts: AnyMarkdownFontGroup(
+                MarkdownViewTestSupport.FontGroupStub(bodyFont: bodyFont)
+            )
+        )
+        let attributedString = NSAttributedString(
+            MarkdownViewTestSupport.attributedString(in: textContent)
+        )
+        let range = (attributedString.string as NSString).range(of: "let value = 1")
+        let font = attributedString.attribute(
+            .font,
+            at: range.location,
+            effectiveRange: nil
+        ) as? PlatformFont
+
+        #expect(range.location != NSNotFound)
+        #expect(font?.pointSize == bodyFont.pointSize)
+        #expect(
+            font.map { CTFontGetSymbolicTraits($0 as CTFont).contains(.traitMonoSpace) } == true
+        )
+        #expect(
+            attributedString.attribute(
+                .backgroundColor,
+                at: range.location,
+                effectiveRange: nil
+            ) == nil
+        )
+    }
+
+    @Test(
         "Embeds block attachments",
         .tags(.textConversion, .attachments)
     )
