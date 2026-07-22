@@ -26,9 +26,10 @@ struct MarkdownTableRow: View {
             ForEach(Array(cells.enumerated()), id: \.offset) { (index, cell) in
                 cell.content
                     .multilineTextAlignment(cell.textAlignment)
+                    ._markdownCellPadding(padding)
+                    ._markdownTableColumnWidthLimited()
                     .gridColumnAlignment(cell.horizontalAlignment)
                     .gridCellColumns(cell.colspan)
-                    ._markdownCellPadding(padding)
                     .modifier(
                         MarkdownTableStylePreferenceSynchronizer(
                             row: rowIndex,

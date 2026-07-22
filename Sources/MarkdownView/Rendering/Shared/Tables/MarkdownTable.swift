@@ -4,6 +4,7 @@ import Markdown
 struct MarkdownTable: View {
     var table: MarkdownTableStyleConfiguration.Table
     @Environment(\.markdownTableStyle) private var tableStyle
+    @State private var viewportWidth: CGFloat = 0
 
     init(table: MarkdownTableStyleConfiguration.Table) {
         self.table = table
@@ -13,16 +14,75 @@ struct MarkdownTable: View {
         let configuration = MarkdownTableStyleConfiguration(
             table: table
         )
-        tableStyle
-            .makeBody(configuration: configuration)
-            .erasedToAnyView()
-            .markdownTableCellStyleApplied()
-            .coordinateSpace(name: MarkdownTable.CoordinateSpaceName)
+        ScrollView(.horizontal) {
+            tableStyle
+                .makeBody(configuration: configuration)
+                .erasedToAnyView()
+                .environment(
+                    \.markdownTableMinimumWidth,
+                    max(0, viewportWidth - MarkdownTableLayout.outerPadding * 2)
+                )
+                .fixedSize(horizontal: true, vertical: true)
+                .markdownTableCellStyleApplied()
+                .padding(MarkdownTableLayout.outerPadding)
+                .coordinateSpace(name: MarkdownTable.CoordinateSpaceName)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .onWidthChange { viewportWidth = $0 }
     }
 }
 
 extension MarkdownTable {
     static let CoordinateSpaceName: String = "markdownview-table"
+}
+
+enum MarkdownTableLayout {
+    static let outerPadding: CGFloat = 1
+    static let maximumColumnWidth: CGFloat = 280
+}
+
+struct MarkdownTableMinimumWidthEnvironmentKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 0
+}
+
+extension EnvironmentValues {
+    var markdownTableMinimumWidth: CGFloat {
+        get { self[MarkdownTableMinimumWidthEnvironmentKey.self] }
+        set { self[MarkdownTableMinimumWidthEnvironmentKey.self] = newValue }
+    }
+}
+
+private struct MarkdownTableColumnWidthLimitLayout: Layout {
+    func sizeThatFits(
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout ()
+    ) -> CGSize {
+        guard let subview = subviews.first else { return .zero }
+
+        let idealSize = subview.sizeThatFits(.unspecified)
+        let width = min(idealSize.width, MarkdownTableLayout.maximumColumnWidth)
+        let constrainedSize = subview.sizeThatFits(
+            ProposedViewSize(width: width, height: proposal.height)
+        )
+
+        return CGSize(width: width, height: constrainedSize.height)
+    }
+
+    func placeSubviews(
+        in bounds: CGRect,
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout ()
+    ) {
+        guard let subview = subviews.first else { return }
+
+        subview.place(
+            at: bounds.origin,
+            anchor: .topLeading,
+            proposal: ProposedViewSize(width: bounds.width, height: nil)
+        )
+    }
 }
 
 // MARK: - Auxiliary
@@ -102,6 +162,12 @@ fileprivate struct MarkdownTableCellStylingViewModifier: ViewModifier {
 }
 
 extension View {
+    nonisolated func _markdownTableColumnWidthLimited() -> some View {
+        MarkdownTableColumnWidthLimitLayout {
+            self
+        }
+    }
+
     nonisolated func _markdownTableStylesIgnored(_ ignored: Bool = true) -> some View {
         transformEnvironment(\.self) { environmentValues in
             if ignored {
