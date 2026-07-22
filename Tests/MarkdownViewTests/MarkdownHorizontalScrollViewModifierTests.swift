@@ -3,22 +3,22 @@ import Testing
 
 @testable import MarkdownView
 
-@Suite("Markdown Table Scroll View Modifier")
-struct MarkdownTableScrollViewModifierTests {
+@Suite("Markdown Horizontal Scroll View Modifier")
+struct MarkdownHorizontalScrollViewModifierTests {
     @Test("Accepts an app-specific View extension")
     @MainActor
     func acceptsAppSpecificViewExtension() {
         _ = EmptyView()
-            .markdownTableScrollViewModifier { scrollView in
+            .markdownHorizontalScrollViewModifier { scrollView in
                 scrollView.excludeSideDrawerGesture()
             }
     }
 
-    @Test("Applies the configured scroll view transform")
+    @Test("Applies the configured transform")
     @MainActor
-    func appliesConfiguredScrollViewTransform() {
+    func appliesConfiguredTransform() {
         var didApplyTransform = false
-        let transform = MarkdownTableScrollViewTransform { content in
+        let transform = MarkdownHorizontalScrollViewTransform { content in
             didApplyTransform = true
             return content
         }

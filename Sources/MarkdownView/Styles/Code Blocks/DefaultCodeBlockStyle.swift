@@ -61,6 +61,7 @@ fileprivate struct DefaultMarkdownCodeBlock: View {
     @Environment(\.colorScheme) private var colorScheme
     
     @Environment(\.markdownFontGroup.codeBlock) private var font
+    @Environment(\.markdownHorizontalScrollViewTransform) private var scrollViewTransform
     
     @State private var language: String?
     @State private var attributedCode: AttributedString?
@@ -70,18 +71,20 @@ fileprivate struct DefaultMarkdownCodeBlock: View {
     @State private var codeCopied = false
     
     var body: some View {
-        ScrollView(.horizontal) {
-            Group {
-                if let attributedCode {
-                    Text(attributedCode)
-                } else {
-                    Text(verbatim: codeBlockConfiguration.code)
+        scrollViewTransform(
+            ScrollView(.horizontal) {
+                Group {
+                    if let attributedCode {
+                        Text(attributedCode)
+                    } else {
+                        Text(verbatim: codeBlockConfiguration.code)
+                    }
                 }
+                #if os(macOS) || os(iOS)
+                .textSelection(.enabled)
+                #endif
             }
-            #if os(macOS) || os(iOS)
-            .textSelection(.enabled)
-            #endif
-        }
+        )
         .task(id: codeHighlightingConfiguration, immediateHighlight)
         .onValueChange(codeBlockConfiguration) {
             debouncedHighlight()

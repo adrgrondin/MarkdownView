@@ -4,7 +4,7 @@ import Markdown
 struct MarkdownTable: View {
     var table: MarkdownTableStyleConfiguration.Table
     @Environment(\.markdownTableStyle) private var tableStyle
-    @Environment(\.markdownTableScrollViewTransform) private var scrollViewTransform
+    @Environment(\.markdownHorizontalScrollViewTransform) private var horizontalScrollViewTransform
     @State private var viewportWidth: CGFloat = 0
 
     init(table: MarkdownTableStyleConfiguration.Table) {
@@ -15,7 +15,7 @@ struct MarkdownTable: View {
         let configuration = MarkdownTableStyleConfiguration(
             table: table
         )
-        scrollViewTransform(
+        horizontalScrollViewTransform(
             ScrollView(.horizontal) {
                 tableStyle
                     .makeBody(configuration: configuration)
