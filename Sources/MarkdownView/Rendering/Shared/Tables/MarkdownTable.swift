@@ -4,6 +4,7 @@ import Markdown
 struct MarkdownTable: View {
     var table: MarkdownTableStyleConfiguration.Table
     @Environment(\.markdownTableStyle) private var tableStyle
+    @Environment(\.markdownTableScrollViewTransform) private var scrollViewTransform
     @State private var viewportWidth: CGFloat = 0
 
     init(table: MarkdownTableStyleConfiguration.Table) {
@@ -14,19 +15,21 @@ struct MarkdownTable: View {
         let configuration = MarkdownTableStyleConfiguration(
             table: table
         )
-        ScrollView(.horizontal) {
-            tableStyle
-                .makeBody(configuration: configuration)
-                .erasedToAnyView()
-                .environment(
-                    \.markdownTableMinimumWidth,
-                    max(0, viewportWidth - MarkdownTableLayout.outerPadding * 2)
-                )
-                .fixedSize(horizontal: true, vertical: true)
-                .markdownTableCellStyleApplied()
-                .padding(MarkdownTableLayout.outerPadding)
-                .coordinateSpace(name: MarkdownTable.CoordinateSpaceName)
-        }
+        scrollViewTransform(
+            ScrollView(.horizontal) {
+                tableStyle
+                    .makeBody(configuration: configuration)
+                    .erasedToAnyView()
+                    .environment(
+                        \.markdownTableMinimumWidth,
+                        max(0, viewportWidth - MarkdownTableLayout.outerPadding * 2)
+                    )
+                    .fixedSize(horizontal: true, vertical: true)
+                    .markdownTableCellStyleApplied()
+                    .padding(MarkdownTableLayout.outerPadding)
+                    .coordinateSpace(name: MarkdownTable.CoordinateSpaceName)
+            }
+        )
         .frame(maxWidth: .infinity, alignment: .leading)
         .onWidthChange { viewportWidth = $0 }
     }
