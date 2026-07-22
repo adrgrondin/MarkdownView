@@ -11,6 +11,7 @@ import SwiftUI
 struct InlineMath: View {
     var latexText: String
     @Environment(\.markdownFontGroup.inlineMath) private var font
+    @Environment(\.markdownHorizontalScrollViewTransform) private var scrollViewTransform
 
     init(latexText: String) {
         self.latexText = latexText
@@ -24,14 +25,16 @@ struct InlineMath: View {
                 labelMode: .text,
                 textAlignment: .left
             )
-            ScrollView(.horizontal) {
-                SwiftMathView(
-                    latex: latexText,
-                    font: font,
-                    labelMode: .text,
-                    textAlignment: .left
-                )
-            }
+            scrollViewTransform(
+                ScrollView(.horizontal) {
+                    SwiftMathView(
+                        latex: latexText,
+                        font: font,
+                        labelMode: .text,
+                        textAlignment: .left
+                    )
+                }
+            )
         }
     }
 }

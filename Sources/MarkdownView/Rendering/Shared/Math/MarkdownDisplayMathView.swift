@@ -12,6 +12,7 @@ struct MarkdownDisplayMathView: View {
     
     @Environment(\.markdownMathContext) var mathContext
     @Environment(\.markdownFontGroup.displayMath) private var font
+    @Environment(\.markdownHorizontalScrollViewTransform) private var scrollViewTransform
     
     private var latexMath: String? {
         mathContext?.displayMathStorage[mathIdentifier]
@@ -20,9 +21,11 @@ struct MarkdownDisplayMathView: View {
     var body: some View {
         ViewThatFits(in: .horizontal) {
             latex
-            ScrollView(.horizontal) {
-                latex
-            }
+            scrollViewTransform(
+                ScrollView(.horizontal) {
+                    latex
+                }
+            )
         }
     }
     

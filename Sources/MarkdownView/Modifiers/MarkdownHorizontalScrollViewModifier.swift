@@ -1,29 +1,29 @@
 import SwiftUI
 
 extension View {
-    /// Applies a transform to the horizontal scroll view used by markdown tables.
+    /// Applies a transform to horizontal scroll views created by MarkdownView.
     ///
-    /// Use this modifier when an app-specific modifier needs to act directly on
-    /// each table scroll view rather than on the surrounding ``MarkdownView``.
+    /// The transform applies to fenced code blocks, tables, and overflowing
+    /// inline or display math.
     ///
     /// ```swift
     /// MarkdownView(markdown)
-    ///     .markdownTableScrollViewModifier { scrollView in
+    ///     .markdownHorizontalScrollViewModifier { scrollView in
     ///         scrollView.excludeSideDrawerGesture()
     ///     }
     /// ```
     @MainActor
-    public func markdownTableScrollViewModifier<ModifiedContent: View>(
+    public func markdownHorizontalScrollViewModifier<ModifiedContent: View>(
         @ViewBuilder _ transform: @MainActor @escaping (AnyView) -> ModifiedContent
     ) -> some View {
         environment(
-            \.markdownTableScrollViewTransform,
-            MarkdownTableScrollViewTransform(transform)
+            \.markdownHorizontalScrollViewTransform,
+            MarkdownHorizontalScrollViewTransform(transform)
         )
     }
 }
 
-struct MarkdownTableScrollViewTransform {
+struct MarkdownHorizontalScrollViewTransform {
     private let transform: @MainActor (AnyView) -> AnyView
 
     nonisolated init() {
@@ -43,5 +43,5 @@ struct MarkdownTableScrollViewTransform {
 }
 
 extension EnvironmentValues {
-    @Entry var markdownTableScrollViewTransform = MarkdownTableScrollViewTransform()
+    @Entry var markdownHorizontalScrollViewTransform = MarkdownHorizontalScrollViewTransform()
 }
