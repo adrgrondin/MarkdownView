@@ -156,6 +156,33 @@ MarkdownView(markdownText)
     .markdownUnorderedListMarker(.bullet)
 ```
 
+### Customize horizontal scroll views
+
+Use an `Equatable` value modifier for stable wrappers around MarkdownView's tables,
+fenced code blocks, and overflowing math:
+
+```swift
+struct HorizontalScrollChrome: ViewModifier, Equatable {
+    var hideIndicators: Bool
+
+    func body(content: Content) -> some View {
+        content.scrollIndicators(hideIndicators ? .hidden : .visible)
+    }
+}
+
+MarkdownView(markdownText)
+    .markdownHorizontalScrollViewModifier(HorizontalScrollChrome(hideIndicators: true))
+```
+
+Equal modifier values avoid unnecessary descendant invalidation when a parent
+updates. Include every behavior-affecting input in equality. Keep the modifier
+value free of stored closures or freshly created reference identities.
+
+The existing closure overload remains supported and propagates replaced captures,
+but reconstructing it can invalidate scroll-view descendants even for unchanged
+Markdown. Do not work around that by freezing the closure in state or ignoring
+changing inputs in equality.
+
 ### Share parsed content
 
 Use `MarkdownReader` when multiple views need the same parse result.
