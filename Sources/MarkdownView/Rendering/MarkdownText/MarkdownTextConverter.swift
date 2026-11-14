@@ -11,6 +11,7 @@ import SwiftUI
 
 import RichText
 import Markdown
+import CoreText
 
 @MainActor
 struct MarkdownTextConverter: @MainActor MarkupVisitor {
@@ -429,10 +430,7 @@ private extension TextContent {
                         #endif
                         return (
                             run.range,
-                            PlatformFont.monospacedSystemFont(
-                                ofSize: (currentFont ?? defaultFont).pointSize,
-                                weight: .regular
-                            )
+                            (currentFont ?? defaultFont).inlineCodeFont
                         )
                     }
                 for (range, font) in codeRuns {
@@ -444,6 +442,25 @@ private extension TextContent {
                 return .attributedString(attributedString)
             }
         )
+    }
+}
+
+private extension PlatformFont {
+    var inlineCodeFont: PlatformFont {
+        // Read resolved traits, including those implied by a named custom font.
+        let traits = CTFontCopyTraits(self as CTFont) as NSDictionary
+        let weight = (traits[kCTFontWeightTrait] as? NSNumber)?.doubleValue ?? 0
+        let monospaced = PlatformFont.monospacedSystemFont(
+            ofSize: pointSize,
+            weight: .init(rawValue: CGFloat(weight))
+        )
+        let italic = CTFontGetSymbolicTraits(self as CTFont).intersection(.traitItalic)
+        guard let font = CTFontCreateCopyWithSymbolicTraits(
+            monospaced as CTFont, pointSize, nil, italic, .traitItalic
+        ) else {
+            return monospaced
+        }
+        return font as PlatformFont
     }
 }
 

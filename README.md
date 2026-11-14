@@ -148,6 +148,9 @@ MarkdownView(markdownText)
     .markdownCodeBlockStyle(.default(lightTheme: "xcode", darkTheme: "dark"))
 ```
 
+Inline code uses a monospaced font while preserving the surrounding text's point
+size, font weight, and italic trait.
+
 Customize list rendering.
 
 ```swift
@@ -182,6 +185,9 @@ The existing closure overload remains supported and propagates replaced captures
 but reconstructing it can invalidate scroll-view descendants even for unchanged
 Markdown. Do not work around that by freezing the closure in state or ignoring
 changing inputs in equality.
+
+Table sizing uses the inner scroll viewport, including when a wrapper adds padding
+or changes size. Short tables fit that viewport; wide tables remain scrollable.
 
 ### Share parsed content
 

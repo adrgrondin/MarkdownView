@@ -8,6 +8,7 @@
 #if canImport(RichText)
 
 import Foundation
+import CoreText
 import Markdown
 import RichText
 import SwiftUI
@@ -177,6 +178,55 @@ struct MarkdownTextConverterTests {
                 effectiveRange: nil
             ) == nil
         )
+    }
+
+    @Test(
+        "Inline code preserves the surrounding font size, weight, and italic trait",
+        .tags(.textConversion),
+        arguments: InlineCodeFontFixture.allCases, ["Prose `code`", "# Prose `code`"]
+    )
+    @MainActor
+    func preservesInlineCodeFontTraits(fixture: InlineCodeFontFixture, markdown: String) throws {
+        let bodyFont: PlatformFont
+        switch fixture {
+        case .regular: bodyFont = .systemFont(ofSize: 24, weight: .regular)
+        case .semibold: bodyFont = .systemFont(ofSize: 24, weight: .semibold)
+        case .bold: bodyFont = .systemFont(ofSize: 24, weight: .bold)
+        case .italic:
+            let base = PlatformFont.systemFont(ofSize: 24)
+            bodyFont = try #require(CTFontCreateCopyWithSymbolicTraits(
+                base as CTFont, 24, nil, .traitItalic, .traitItalic
+            )) as PlatformFont
+        case .customBoldItalic:
+            bodyFont = try #require(PlatformFont(name: "Helvetica-BoldOblique", size: 24))
+        }
+        let content = MarkdownViewTestSupport.makeTextContent(
+            markdown: markdown,
+            fonts: AnyMarkdownFontGroup(MarkdownViewTestSupport.FontGroupStub(bodyFont: bodyFont))
+        )
+        // Exercise RichText's complete attribute conversion, not just the raw fragments.
+        let attributedString = NSAttributedString(
+            content.attributedString(environmentValues: EnvironmentValues())
+        )
+        let prose = try #require(MarkdownViewTestSupport.font(in: attributedString, matching: "Prose"))
+        let code = try #require(MarkdownViewTestSupport.font(in: attributedString, matching: "code"))
+        let proseTraits = CTFontGetSymbolicTraits(prose as CTFont)
+        let codeTraits = CTFontGetSymbolicTraits(code as CTFont)
+        #expect(code.pointSize == prose.pointSize)
+        #expect(codeTraits.contains(.traitMonoSpace))
+        #expect(codeTraits.contains(.traitItalic) == proseTraits.contains(.traitItalic))
+        #expect(codeTraits.contains(.traitBold) == proseTraits.contains(.traitBold))
+        let proseWeight = try #require(
+            (CTFontCopyTraits(prose as CTFont) as NSDictionary)[kCTFontWeightTrait] as? NSNumber
+        ).doubleValue
+        let codeWeight = try #require(
+            (CTFontCopyTraits(code as CTFont) as NSDictionary)[kCTFontWeightTrait] as? NSNumber
+        ).doubleValue
+        #expect(abs(codeWeight - proseWeight) < 0.01)
+    }
+
+    enum InlineCodeFontFixture: CaseIterable, Sendable {
+        case regular, semibold, bold, italic, customBoldItalic
     }
 
     @Test(

@@ -29,9 +29,11 @@ struct MarkdownTable: View {
                     .padding(MarkdownTableLayout.outerPadding)
                     .coordinateSpace(name: MarkdownTable.CoordinateSpaceName)
             }
+            // Measure the actual viewport, before a custom wrapper can add
+            // padding or otherwise change the space available to the scroll view.
+            .onWidthChange { viewportWidth = $0 }
         )
         .frame(maxWidth: .infinity, alignment: .leading)
-        .onWidthChange { viewportWidth = $0 }
     }
 }
 
